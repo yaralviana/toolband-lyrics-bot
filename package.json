@@ -1,0 +1,27 @@
+{
+  "name": "toolband-lyrics-bot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yaralviana/toolband-lyrics-bot.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/yaralviana/toolband-lyrics-bot/issues"
+  },
+  "homepage": "https://github.com/yaralviana/toolband-lyrics-bot#readme",
+  "dependencies": {
+    "dotenv": "^16.0.3",
+    "genius-api": "^0.4.1",
+    "genius-lyrics-api": "^3.2.0",
+    "lyricist": "^2.2.2",
+    "markovchain": "^1.0.2",
+    "twit": "^2.2.11"
+  }
+}
