@@ -1,71 +1,62 @@
 const Twit = require("twit")
-const fs = require("fs")
-require("dotenv").config()
-
-//Para rodar projeto localmente
+const genius = require("genius-lyrics-api")
 const config = require("./config.js")
+
+// To run project locally
 process.env = config
 
-const order = 4
-let nGrams = {}
-
-const Bot = new Twit({
+const client = new Twit({
   consumer_key: process.env.consumer_key,
   consumer_secret: process.env.consumer_secret,
   access_token: process.env.access_token,
   access_token_secret: process.env.access_token_secret,
 })
 
-function pickRandomStart(lyrics) {
-  const random = Math.floor(Math.random() * lyrics.length)
-  return lyrics.substring(random, random + order)
+// Configure the Genius client
+const options = {
+  apiKey: process.env.genius_access_token,
+  title: "",
+  artist: "Tool",
+  optimizeQuery: true,
 }
 
-function makeEngramModel(lyrics) {
-  for (let i = 0; i < lyrics.length - order; i++) {
-    const gram = lyrics.substring(i, i + order)
+// List of lyrics for the artist's songs
+let songLyrics = []
 
-    if (!nGrams[gram]) {
-      nGrams[gram] = []
-    }
-    nGrams[gram].push(lyrics.charAt(i + order))
+// Function to get the lyrics of the artist's songs
+async function getSongLyrics() {
+  try {
+    const searchResults = await genius.search(options)
+    const songs = searchResults.map((result) => result.id)
+    const lyrics = await genius.getLyrics(songs, options)
+    songLyrics = lyrics
+    console.log(songLyrics)
+  } catch (error) {
+    console.error(error)
   }
 }
 
-function tweet() {
-  fs.readFile("lyrics.txt", "utf8", function (error, lyrics) {
-    if (error) {
-      console.log(error.message)
-    } else {
-      makeEngramModel(lyrics)
-      let currentGram = pickRandomStart(lyrics)
+// Function to randomly select a song lyric and post it on Twitter
+function postSongLyric() {
+  const songLyric = songLyrics[Math.floor(Math.random() * songLyrics.length)]
 
-      while (!currentGram.match(/^[0-9a-zA-Z]+$/)) {
-        currentGram = pickRandomStart(lyrics)
+  console.log(songLyric)
+
+  client.post(
+    "statuses/update",
+    { status: songLyric },
+    function (error, tweet, response) {
+      if (!error) {
+        console.log(tweet)
+      } else {
+        console.error(error)
       }
-      let tweet = currentGram
-
-      for (let j = 0; j < 150 || tweet.charAt(j).match(/^[0-9a-zA-Z]+$/); j++) {
-        const possibilities = nGrams[currentGram]
-        const next =
-          possibilities[Math.floor(Math.random() * possibilities.length)]
-        tweet += next
-        const len = tweet.length
-        currentGram = tweet.substring(len - order, len)
-      }
-      console.log(tweet)
-
-      Bot.post(
-        "statuses/update",
-        { status: tweet },
-        function (error, tweet, response) {
-          if (error) {
-            console.log("Error making post. ", error.message)
-          }
-        }
-      )
     }
-  })
+  )
 }
 
-tweet()
+getSongLyrics()
+
+// Call the functions at regular intervals
+// setInterval(getSongLyrics, 24 * 60 * 60 * 1000); // Get the lyrics of the songs once a day
+// setInterval(postSongLyric, 2 * 60 * 60 * 1000); // Post a song lyric every two hours
