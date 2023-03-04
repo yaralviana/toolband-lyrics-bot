@@ -12,43 +12,35 @@ const client = new Twit({
   access_token_secret: process.env.access_token_secret,
 })
 
-const artistName = "Tool"
+// const Twitter = require("twitter")
+// const lyricsFinder = require("lyrics-finder")
 
-let songLyrics = []
+const songs = ["Sober", "Lateralus", "Vicarious", "Jambi"]
 
-async function getSongLyrics() {
-  try {
-    const songs = await lyricsFinder(artistName)
-
-    for (const song of songs) {
-      const lyrics = await lyricsFinder(artistName, song)
-      songLyrics.push(lyrics)
-    }
-
-    console.log(songLyrics)
-  } catch (error) {
-    console.error(error)
-  }
+function getRandomSong() {
+  const randomIndex = Math.floor(Math.random() * songs.length)
+  return songs[randomIndex]
 }
 
-function postSongLyric() {
-  const songLyric = songLyrics[Math.trunc(Math.random() * songLyrics.length)]
-  console.log(songLyric)
-
+async function postRandomLyrics() {
+  const song = getRandomSong()
+  const lyrics = await lyricsFinder(song)
+  const tweet = `${song}\n\n${lyrics.substr(0, 180 - song.length - 3) + "..."}`
+  console.log(`Posting tweet: ${tweet}`)
   client.post(
     "statuses/update",
-    { status: songLyric },
+    { status: tweet },
     function (error, tweet, response) {
-      if (!error) {
-        console.log(tweet)
+      if (error) {
+        console.log(`Error posting tweet: ${error}`)
       } else {
-        console.error(error)
+        console.log(`Tweet posted successfully!`)
       }
     }
   )
 }
 
-// getSongLyrics()
-// postSongLyric()
-setInterval(getSongLyrics, 24 * 60 * 60 * 1000)
-setInterval(postSongLyric, 2 * 60 * 60 * 1000) // Postar a cada 2 horas
+postRandomLyrics()
+
+// setInterval(getSongLyrics, 24 * 60 * 60 * 1000)
+// setInterval(postSongLyric, 2 * 60 * 60 * 1000) // Postar a cada 2 horas
